@@ -1,2 +1,4 @@
-# TankBattle
-Juego de tanques 1v1 utilizando la libreria SFML
+# INTEGRANTES
+Montañez Pacco, Roni Ezequiel
+Coloma Yujra, Riki Santher
+Rivera Torres, Jose Alberto
