@@ -125,9 +125,14 @@ void Game::processEvents() {
   }
 }
 void Game::update(sf::Time &dt) {
-  tankThreads.clear();
-  for (auto &tank : tanks) {
-    tankThreads.emplace_back(&Game::updateTank, this, tank.get(), dt);
+  if (tankThreads.size() != tanks.size()) {
+    tankThreads.resize(tanks.size());
+  }
+  for (size_t i = 0; i < tanks.size(); ++i) {
+    if (tankThreads[i].joinable()) {
+      tankThreads[i].join();
+    }
+    tankThreads[i] = std::thread(&Game::updateTank, this, tanks[i].get(), dt);
   }
 
   for (auto &thread : tankThreads) {
@@ -135,6 +140,7 @@ void Game::update(sf::Time &dt) {
       thread.join();
     }
   }
+
   for (size_t i = 0; i < healthBars.size(); i++) {
     if (healthBars[i].getCurrentHealth() == 0) {
       tanks.erase(tanks.begin() + i);
@@ -145,8 +151,9 @@ void Game::update(sf::Time &dt) {
 }
 
 void Game::updateTank(Tank *tank, sf::Time dt) {
-  std::lock_guard<std::mutex> lock(updateMutex);
   tank->update(dt, maze.getWalls(), tanks);
+
+  std::lock_guard<std::mutex> lock(updateMutex);
   for (size_t i = 0; i < tanks.size(); ++i) {
     if (tank != tanks[i].get()) {
       for (auto &bullet : tank->getBullets()) {
